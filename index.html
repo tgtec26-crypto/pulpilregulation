@@ -217,7 +217,8 @@ function drawScene(exposure){
   sctx.clearRect(0,0,SW,SH);
   let brightness;
   if(exposure<OPTIMAL){brightness=Math.max(0.03,exposure/OPTIMAL);}else{brightness=1;}
-  const whiteOv=exposure>OPTIMAL?Math.min(0.92,(exposure-OPTIMAL)/0.5):0;
+  // 수정: 하얀색 덮는 정도를 확 높이고, 임계점을 낮춰서 빨리 하얗게 날아가게 만듦
+  const whiteOv = exposure > OPTIMAL ? Math.min(0.98, (exposure - OPTIMAL) * 2.5) : 0;
   sctx.save();
   const wG=sctx.createLinearGradient(0,0,0,SH*0.52);wG.addColorStop(0,ab('#EDE4D4',brightness));wG.addColorStop(1,ab('#E0D8C4',brightness));
   sctx.fillStyle=wG;sctx.fillRect(0,0,SW,SH*0.52);
@@ -243,7 +244,17 @@ function drawScene(exposure){
   drawApple(sctx,SW*0.62,baseY-appleR,appleR,brightness);
   drawCup(sctx,SW*0.82,baseY-SH*0.05,SW*0.045,SH*0.08,brightness);
   sctx.restore();
-  if(whiteOv>0){sctx.fillStyle='rgba(255,255,255,'+whiteOv+')';sctx.fillRect(0,0,SW,SH);}
+  if(whiteOv>0){
+    // 기본적으로 하얗게 덮기
+    sctx.fillStyle='rgba(255,255,255,'+whiteOv+')';
+    sctx.fillRect(0,0,SW,SH);
+    
+    // 블러/글로우 느낌 추가 (빛 번짐)
+    sctx.globalCompositeOperation = 'screen';
+    sctx.fillStyle='rgba(255,255,255,'+(whiteOv * 0.5)+')';
+    sctx.fillRect(0,0,SW,SH);
+    sctx.globalCompositeOperation = 'source-over'; // 원래대로 복구
+  }
   if(exposure<OPTIMAL){const d=1-brightness;sctx.fillStyle='rgba(0,0,0,'+d+')';sctx.fillRect(0,0,SW,SH);}
   const expP=Math.round(exposure/OPTIMAL*100);sceneLabel.textContent='노출: '+expP+'%';
   sceneLabel.style.color=Math.abs(exposure-OPTIMAL)<0.04?'#1D9E75':exposure<OPTIMAL?'#6B6B6B':'#E24B4A';
