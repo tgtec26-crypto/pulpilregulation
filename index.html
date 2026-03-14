@@ -180,8 +180,8 @@ function drawEye(pupilSize,exposure){
     const irisX = mapX(593); 
     
     // 🔥 여기가 핵심 수정 부위: 막대의 바깥쪽 끝(상하단)을 핑크색 조직에 닿게 앵커 고정
-    const irisTopAnchor = mapY(275);     // 상단 조직에 맞닿는 좌표
-    const irisBottomAnchor = mapY(451);  // 하단 조직에 맞닿는 좌표
+    const irisTopAnchor = mapY(310);     // 상단 조직에 맞닿는 좌표
+    const irisBottomAnchor = mapY(416);  // 하단 조직에 맞닿는 좌표
 
     const irisFullHalf = (mapY(415)-mapY(300)) / 2;
     const openHalf = irisFullHalf * pupilSize; 
