@@ -1,3 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>동공 크기와 빛의 양 시뮬레이션</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#f8f8f6;display:flex;justify-content:center;align-items:center;min-height:100vh;}
+#app{display:flex;width:100%;max-width:1100px;gap:0;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);user-select:none;}
+.left{flex:1.5;min-width:0;display:flex;flex-direction:column;}
+.right{flex:1;min-width:0;display:flex;flex-direction:column;border-left:1px solid #e8e8e4;}
+canvas{width:100%;display:block;}
+.controls{padding:12px 16px;display:flex;flex-direction:column;gap:12px;}
+.slider-row{display:flex;align-items:center;gap:10px;}
+.slider-row label{font-size:14px;color:#666;min-width:80px;font-weight:500;}
+.slider-row input[type=range]{flex:1;height:6px;-webkit-appearance:none;appearance:none;background:#e0e0dc;border-radius:3px;outline:none;}
+.slider-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#F0A030;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+.slider-row span{font-size:14px;font-weight:600;min-width:36px;text-align:right;color:#333;}
+.light-row{display:flex;align-items:center;gap:10px;}
+.light-row label{font-size:14px;color:#666;min-width:80px;font-weight:500;}
+.light-btns{display:flex;gap:6px;flex:1;}
+.light-btns button{flex:1;font-size:13px;padding:7px 4px;border-radius:8px;border:1.5px solid #ccc;background:#fff;cursor:pointer;font-weight:600;color:#555;transition:all 0.2s;}
+.light-btns button:hover{background:#f0f0ec;border-color:#aaa;}
+.light-btns button.active{background:#F0A030;color:#fff;border-color:#D08020;}
+#exposureMsg{font-size:14px;text-align:center;min-height:22px;font-weight:600;padding:6px 0;}
+#sceneLabel{text-align:center;font-size:13px;padding:6px;font-weight:600;}
+@media(max-width:600px){#app{flex-direction:column;}.right{border-left:none;border-top:1px solid #e8e8e4;}}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="left">
+<canvas id="eyeCanvas"></canvas>
+<div class="controls">
+<div class="slider-row">
+<label>동공 크기</label>
+<input type="range" id="sliderPupil" min="0.18" max="0.70" value="0.40" step="0.01">
+<span id="valPupil"></span>
+</div>
+<div class="light-row">
+<label>조명 밝기</label>
+<div class="light-btns">
+<button data-light="0.2">20</button>
+<button data-light="0.4">40</button>
+<button data-light="0.6" class="active">60</button>
+<button data-light="0.8">80</button>
+<button data-light="1.0">100</button>
+</div>
+</div>
+<div id="exposureMsg"></div>
+</div>
+</div>
+<div class="right">
+<canvas id="sceneCanvas"></canvas>
+<div id="sceneLabel"></div>
+</div>
+</div>
 <script>
 const eyeC=document.getElementById('eyeCanvas'),sceneC=document.getElementById('sceneCanvas');
 const ctx=eyeC.getContext('2d'),sctx=sceneC.getContext('2d');
@@ -17,7 +75,7 @@ svgImg.onload=()=>{svgLoaded=true;drawAll();};
 
 // ✨ 2. 오른쪽 배경 이미지 로드 (여기에 원하는 파일명을 넣으세요)
 const sceneImg = new Image();
-sceneImg.src = 'scene.jpg'; // 예: 'room.png', 'landscape.svg' 등
+sceneImg.src = 'scene.png'; // 예: 'room.png', 'landscape.svg' 등
 let sceneLoaded = false;
 sceneImg.onload = () => { sceneLoaded = true; drawAll(); };
 
@@ -202,3 +260,5 @@ sliderPupil.oninput=drawAll;
 window.addEventListener('resize',resize);
 resize();
 </script>
+</body>
+</html>
