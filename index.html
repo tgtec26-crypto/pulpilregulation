@@ -218,7 +218,7 @@ function drawScene(exposure){
   let brightness;
   if(exposure<OPTIMAL){brightness=Math.max(0.03,exposure/OPTIMAL);}else{brightness=1;}
   // 수정: 하얀색 덮는 정도를 확 높이고, 임계점을 낮춰서 빨리 하얗게 날아가게 만듦
-  const whiteOv = exposure > OPTIMAL ? Math.min(0.98, (exposure - OPTIMAL) * 2.5) : 0;
+  const whiteOv = exposure > OPTIMAL ? Math.min(0.98, (exposure - OPTIMAL) * 3.5) : 0;
   sctx.save();
   const wG=sctx.createLinearGradient(0,0,0,SH*0.52);wG.addColorStop(0,ab('#EDE4D4',brightness));wG.addColorStop(1,ab('#E0D8C4',brightness));
   sctx.fillStyle=wG;sctx.fillRect(0,0,SW,SH*0.52);
