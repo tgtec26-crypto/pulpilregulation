@@ -1,61 +1,3 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>동공 크기와 빛의 양 시뮬레이션</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#f8f8f6;display:flex;justify-content:center;align-items:center;min-height:100vh;}
-#app{display:flex;width:100%;max-width:1100px;gap:0;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);user-select:none;}
-.left{flex:1.5;min-width:0;display:flex;flex-direction:column;}
-.right{flex:1;min-width:0;display:flex;flex-direction:column;border-left:1px solid #e8e8e4;}
-canvas{width:100%;display:block;}
-.controls{padding:12px 16px;display:flex;flex-direction:column;gap:12px;}
-.slider-row{display:flex;align-items:center;gap:10px;}
-.slider-row label{font-size:14px;color:#666;min-width:80px;font-weight:500;}
-.slider-row input[type=range]{flex:1;height:6px;-webkit-appearance:none;appearance:none;background:#e0e0dc;border-radius:3px;outline:none;}
-.slider-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#F0A030;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
-.slider-row span{font-size:14px;font-weight:600;min-width:36px;text-align:right;color:#333;}
-.light-row{display:flex;align-items:center;gap:10px;}
-.light-row label{font-size:14px;color:#666;min-width:80px;font-weight:500;}
-.light-btns{display:flex;gap:6px;flex:1;}
-.light-btns button{flex:1;font-size:13px;padding:7px 4px;border-radius:8px;border:1.5px solid #ccc;background:#fff;cursor:pointer;font-weight:600;color:#555;transition:all 0.2s;}
-.light-btns button:hover{background:#f0f0ec;border-color:#aaa;}
-.light-btns button.active{background:#F0A030;color:#fff;border-color:#D08020;}
-#exposureMsg{font-size:14px;text-align:center;min-height:22px;font-weight:600;padding:6px 0;}
-#sceneLabel{text-align:center;font-size:13px;padding:6px;font-weight:600;}
-@media(max-width:600px){#app{flex-direction:column;}.right{border-left:none;border-top:1px solid #e8e8e4;}}
-</style>
-</head>
-<body>
-<div id="app">
-<div class="left">
-<canvas id="eyeCanvas"></canvas>
-<div class="controls">
-<div class="slider-row">
-<label>동공 크기</label>
-<input type="range" id="sliderPupil" min="0.18" max="0.70" value="0.40" step="0.01">
-<span id="valPupil"></span>
-</div>
-<div class="light-row">
-<label>조명 밝기</label>
-<div class="light-btns">
-<button data-light="0.2">20</button>
-<button data-light="0.4">40</button>
-<button data-light="0.6" class="active">60</button>
-<button data-light="0.8">80</button>
-<button data-light="1.0">100</button>
-</div>
-</div>
-<div id="exposureMsg"></div>
-</div>
-</div>
-<div class="right">
-<canvas id="sceneCanvas"></canvas>
-<div id="sceneLabel"></div>
-</div>
-</div>
 <script>
 const eyeC=document.getElementById('eyeCanvas'),sceneC=document.getElementById('sceneCanvas');
 const ctx=eyeC.getContext('2d'),sctx=sceneC.getContext('2d');
@@ -67,10 +9,17 @@ let dpr=window.devicePixelRatio||1,W,H,SW,SH;
 let lightLevel=0.6;
 const OPTIMAL=0.18;
 
+// 1. 왼쪽 홍채 단면도 이미지
 const svgImg=new Image();
 svgImg.src='eye.svg'; 
 let svgLoaded=false;
 svgImg.onload=()=>{svgLoaded=true;drawAll();};
+
+// ✨ 2. 오른쪽 배경 이미지 로드 (여기에 원하는 파일명을 넣으세요)
+const sceneImg = new Image();
+sceneImg.src = 'scene.png'; // 예: 'room.png', 'landscape.svg' 등
+let sceneLoaded = false;
+sceneImg.onload = () => { sceneLoaded = true; drawAll(); };
 
 lightBtns.forEach(btn=>{
   btn.onclick=()=>{
@@ -104,14 +53,6 @@ function drawAll(){
   else{exposureMsg.textContent='노출 과다 - 눈부시게 보입니다';exposureMsg.style.color='#E24B4A';}
 }
 
-function drawSimpleArrow(c, fx, fy, tx, ty, col, sz) {
-  c.beginPath(); c.moveTo(fx, fy); c.lineTo(tx, ty);
-  c.strokeStyle = col; c.lineWidth = 3; c.lineCap = 'round'; c.stroke();
-  const dir = ty > fy ? 1 : -1;
-  c.beginPath(); c.moveTo(tx - sz*0.5, ty - sz*dir); c.lineTo(tx, ty); c.lineTo(tx + sz*0.5, ty - sz*dir);
-  c.stroke();
-}
-
 function drawEye(pupilSize,exposure){
   ctx.clearRect(0,0,W,H);
   const cx=W*0.22,cy=H*0.44;
@@ -119,7 +60,7 @@ function drawEye(pupilSize,exposure){
   const irisR=outerR*0.72;
   const pupilR=irisR*pupilSize;
 
-  // 1. 정면 눈 렌더링
+  // 정면 눈 렌더링
   ctx.beginPath();ctx.arc(cx,cy,outerR,0,Math.PI*2);
   ctx.fillStyle='#F5F0E8';ctx.fill();ctx.strokeStyle='#C0B8A8';ctx.lineWidth=2;ctx.stroke();
   const iG=ctx.createRadialGradient(cx-irisR*0.12,cy-irisR*0.12,irisR*0.1,cx,cy,irisR);
@@ -161,7 +102,7 @@ function drawEye(pupilSize,exposure){
     });
   }
 
-  // 2. 단면도(SVG) 및 동적 홍채 렌더링
+  // 단면도(SVG) 및 동적 홍채 렌더링
   if(svgLoaded){
     const srcX=540,srcY=240,srcW=260,srcH=230;
     const svgTargetH=outerR*2.2;
@@ -179,98 +120,85 @@ function drawEye(pupilSize,exposure){
     const irisCenterY = mapY(363); 
     const irisX = mapX(594); 
     
-    // 🔥 여기가 핵심 수정 부위: 막대의 바깥쪽 끝(상하단)을 핑크색 조직에 닿게 앵커 고정
-    const irisTopAnchor = mapY(310);     // 상단 조직에 맞닿는 좌표
-    const irisBottomAnchor = mapY(416);  // 하단 조직에 맞닿는 좌표
+    const irisTopAnchor = mapY(310);     
+    const irisBottomAnchor = mapY(416);  
 
     const irisFullHalf = (mapY(415)-mapY(300)) / 2;
     const openHalf = irisFullHalf * pupilSize; 
 
     const irisW = 6; 
-    ctx.fillStyle = '#6D4026'; // 그려주신 갈색과 비슷한 톤
+    ctx.fillStyle = '#6D4026'; 
 
-    // 위쪽 홍채
     const topH = (irisCenterY - openHalf) - irisTopAnchor;
     if (topH > 0) {
         ctx.beginPath();
-        // 고정된 TopAnchor에서 시작해서 아랫방향으로 그리기
         ctx.roundRect(irisX - irisW/2, irisTopAnchor, irisW, topH, 3);
         ctx.fill();
         ctx.strokeStyle = '#332222'; ctx.lineWidth = 1; ctx.stroke();
     }
 
-    // 아래쪽 홍채
     const botH = irisBottomAnchor - (irisCenterY + openHalf);
     if (botH > 0) {
         ctx.beginPath();
-        // 동공 열림 부위에서 시작해서 고정된 BottomAnchor까지 그리기
         ctx.roundRect(irisX - irisW/2, irisCenterY + openHalf, irisW, botH, 3);
         ctx.fill();
         ctx.strokeStyle = '#332222'; ctx.lineWidth = 1; ctx.stroke();
     }
-
-
   }
 }
 
+// ✨ 수정된 배경 그리기 함수
 function drawScene(exposure){
   sctx.clearRect(0,0,SW,SH);
   let brightness;
   if(exposure<OPTIMAL){brightness=Math.max(0.03,exposure/OPTIMAL);}else{brightness=1;}
-  // 수정: 하얀색 덮는 정도를 확 높이고, 임계점을 낮춰서 빨리 하얗게 날아가게 만듦
   const whiteOv = exposure > OPTIMAL ? Math.min(0.98, (exposure - OPTIMAL) * 4.5) : 0;
-  sctx.save();
-  const wG=sctx.createLinearGradient(0,0,0,SH*0.52);wG.addColorStop(0,ab('#EDE4D4',brightness));wG.addColorStop(1,ab('#E0D8C4',brightness));
-  sctx.fillStyle=wG;sctx.fillRect(0,0,SW,SH*0.52);
-  sctx.globalAlpha=0.03*brightness;for(let i=0;i<6;i++){sctx.beginPath();sctx.moveTo(0,i*SH*0.08+10);sctx.quadraticCurveTo(SW*0.5,i*SH*0.08+15,SW,i*SH*0.08+8);sctx.strokeStyle='#8A7A5A';sctx.lineWidth=1;sctx.stroke();}sctx.globalAlpha=1;
-  const tableY=SH*0.52;
-  const tG=sctx.createLinearGradient(0,tableY,0,SH);tG.addColorStop(0,ab('#C4A882',brightness));tG.addColorStop(0.03,ab('#B89A74',brightness));tG.addColorStop(1,ab('#A08860',brightness));
-  sctx.fillStyle=tG;sctx.fillRect(0,tableY,SW,SH-tableY);
-  sctx.beginPath();sctx.moveTo(0,tableY);sctx.lineTo(SW,tableY);sctx.strokeStyle=ab('#D8C8A8',brightness);sctx.lineWidth=2;sctx.stroke();
-  sctx.beginPath();sctx.moveTo(0,tableY+2);sctx.lineTo(SW,tableY+2);sctx.strokeStyle=ab('#8A7A5A',brightness);sctx.lineWidth=1;sctx.stroke();
-  sctx.globalAlpha=0.04*brightness;for(let i=0;i<8;i++){sctx.beginPath();sctx.moveTo(0,tableY+10+i*SH*0.06);sctx.quadraticCurveTo(SW*0.3,tableY+10+i*SH*0.06+4,SW,tableY+10+i*SH*0.06-2);sctx.strokeStyle='#6A5A3A';sctx.lineWidth=1;sctx.stroke();}sctx.globalAlpha=1;
-  const baseY=SH*0.78;const appleR=SW*0.06;
-  drawVase(sctx,SW*0.32,baseY,SW*0.09,SH*0.28,brightness);
-  const vaseTopY=baseY-SH*0.28*0.95;
-  sctx.save();sctx.strokeStyle=ab('#3A7A3A',brightness);sctx.lineWidth=2.5;
-  sctx.beginPath();sctx.moveTo(SW*0.32,vaseTopY+SH*0.028);sctx.quadraticCurveTo(SW*0.28,vaseTopY-SH*0.08,SW*0.26,vaseTopY-SH*0.16);sctx.stroke();
-  sctx.beginPath();sctx.moveTo(SW*0.32,vaseTopY+SH*0.028);sctx.quadraticCurveTo(SW*0.34,vaseTopY-SH*0.1,SW*0.35,vaseTopY-SH*0.2);sctx.stroke();
-  sctx.beginPath();sctx.moveTo(SW*0.32,vaseTopY+SH*0.028);sctx.quadraticCurveTo(SW*0.38,vaseTopY-SH*0.05,SW*0.4,vaseTopY-SH*0.12);sctx.stroke();
-  sctx.beginPath();sctx.moveTo(SW*0.32,vaseTopY+SH*0.028);sctx.quadraticCurveTo(SW*0.24,vaseTopY-SH*0.02,SW*0.22,vaseTopY-SH*0.08);sctx.stroke();
-  sctx.restore();
-  drawFlowerA(sctx,SW*0.26,vaseTopY-SH*0.16,SW*0.04,brightness);drawFlowerA(sctx,SW*0.35,vaseTopY-SH*0.2,SW*0.045,brightness);drawFlowerA(sctx,SW*0.4,vaseTopY-SH*0.12,SW*0.035,brightness);
-  drawFlowerB(sctx,SW*0.22,vaseTopY-SH*0.08,SW*0.03,brightness);drawFlowerB(sctx,SW*0.38,vaseTopY-SH*0.06,SW*0.025,brightness);
-  drawLeaf(sctx,SW*0.28,vaseTopY-SH*0.05,SW*0.025,-0.4,brightness);drawLeaf(sctx,SW*0.36,vaseTopY-SH*0.03,SW*0.022,0.3,brightness);
-  drawApple(sctx,SW*0.62,baseY-appleR,appleR,brightness);
-  drawCup(sctx,SW*0.82,baseY-SH*0.05,SW*0.045,SH*0.08,brightness);
-  sctx.restore();
+  
+  // 1. 이미지 렌더링 (CSS의 object-fit: cover 와 동일하게 비율을 유지하며 꽉 채우도록 설정)
+  if(sceneLoaded){
+    const imgRatio = sceneImg.width / sceneImg.height;
+    const canvasRatio = SW / SH;
+    let drawW = SW, drawH = SH, drawX = 0, drawY = 0;
+    
+    if(imgRatio > canvasRatio) {
+        drawW = SH * imgRatio;
+        drawX = (SW - drawW) / 2;
+    } else {
+        drawH = SW / imgRatio;
+        drawY = (SH - drawH) / 2;
+    }
+    sctx.drawImage(sceneImg, drawX, drawY, drawW, drawH);
+  } else {
+    // 이미지가 아직 로드되지 않았을 때의 임시 배경색
+    sctx.fillStyle = '#E0D8C4';
+    sctx.fillRect(0, 0, SW, SH);
+  }
+
+  // 2. 노출 과다 효과 (하얗게 날아감 + 빛 번짐)
   if(whiteOv>0){
-    // 기본적으로 하얗게 덮기
     sctx.fillStyle='rgba(255,255,255,'+whiteOv+')';
     sctx.fillRect(0,0,SW,SH);
     
-    // 블러/글로우 느낌 추가 (빛 번짐)
     sctx.globalCompositeOperation = 'screen';
     sctx.fillStyle='rgba(255,255,255,'+(whiteOv * 0.5)+')';
     sctx.fillRect(0,0,SW,SH);
-    sctx.globalCompositeOperation = 'source-over'; // 원래대로 복구
+    sctx.globalCompositeOperation = 'source-over'; 
   }
-  if(exposure<OPTIMAL){const d=1-brightness;sctx.fillStyle='rgba(0,0,0,'+d+')';sctx.fillRect(0,0,SW,SH);}
-  const expP=Math.round(exposure/OPTIMAL*100);sceneLabel.textContent='노출: '+expP+'%';
+
+  // 3. 노출 부족 효과 (어둡게 만듦)
+  if(exposure<OPTIMAL){
+    const d=1-brightness;
+    sctx.fillStyle='rgba(0,0,0,'+d+')';
+    sctx.fillRect(0,0,SW,SH);
+  }
+
+  // 4. 하단 노출 % 라벨 업데이트
+  const expP=Math.round(exposure/OPTIMAL*100);
+  sceneLabel.textContent='노출: '+expP+'%';
   sceneLabel.style.color=Math.abs(exposure-OPTIMAL)<0.04?'#1D9E75':exposure<OPTIMAL?'#6B6B6B':'#E24B4A';
 }
-
-function ab(hex,b){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),bl=parseInt(hex.slice(5,7),16);return 'rgb('+Math.round(r*b)+','+Math.round(g*b)+','+Math.round(bl*b)+')';}
-function drawVase(c,x,bY,w,h,b){c.beginPath();c.moveTo(x-w*0.4,bY);c.lineTo(x-w*0.45,bY-h*0.05);c.quadraticCurveTo(x-w*0.5,bY-h*0.35,x-w*0.35,bY-h*0.55);c.quadraticCurveTo(x-w*0.2,bY-h*0.65,x-w*0.18,bY-h*0.75);c.lineTo(x-w*0.2,bY-h*0.85);c.quadraticCurveTo(x-w*0.22,bY-h*0.92,x-w*0.15,bY-h*0.95);c.lineTo(x+w*0.15,bY-h*0.95);c.quadraticCurveTo(x+w*0.22,bY-h*0.92,x+w*0.2,bY-h*0.85);c.lineTo(x+w*0.18,bY-h*0.75);c.quadraticCurveTo(x+w*0.2,bY-h*0.65,x+w*0.35,bY-h*0.55);c.quadraticCurveTo(x+w*0.5,bY-h*0.35,x+w*0.45,bY-h*0.05);c.lineTo(x+w*0.4,bY);c.closePath();const vG=c.createLinearGradient(x-w*0.5,0,x+w*0.5,0);vG.addColorStop(0,ab('#2A6A6A',b));vG.addColorStop(0.3,ab('#3A8A8A',b));vG.addColorStop(0.5,ab('#4A9A9A',b));vG.addColorStop(0.7,ab('#3A8A8A',b));vG.addColorStop(1,ab('#2A5A5A',b));c.fillStyle=vG;c.fill();c.strokeStyle=ab('#1A4A4A',b);c.lineWidth=1.5;c.stroke();c.beginPath();c.moveTo(x-w*0.15,bY-h*0.95);c.lineTo(x+w*0.15,bY-h*0.95);c.strokeStyle=ab('#5ABABA',b);c.lineWidth=2;c.stroke();c.beginPath();c.moveTo(x-w*0.2,bY-h*0.15);c.quadraticCurveTo(x-w*0.28,bY-h*0.4,x-w*0.18,bY-h*0.55);c.strokeStyle='rgba(255,255,255,'+(0.15*b)+')';c.lineWidth=3;c.stroke();}
-function drawFlowerA(c,x,y,r,b){for(let i=0;i<6;i++){const ang=i*Math.PI*2/6-Math.PI/2;const px=x+Math.cos(ang)*r*0.65,py=y+Math.sin(ang)*r*0.65;c.beginPath();c.arc(px,py,r*0.5,0,Math.PI*2);const fG=c.createRadialGradient(px-r*0.1,py-r*0.1,0,px,py,r*0.5);fG.addColorStop(0,ab('#FF8844',b));fG.addColorStop(1,ab('#E06630',b));c.fillStyle=fG;c.fill();c.strokeStyle=ab('#C04A20',b);c.lineWidth=0.5;c.stroke();}c.beginPath();c.arc(x,y,r*0.28,0,Math.PI*2);c.fillStyle=ab('#FFD040',b);c.fill();}
-function drawFlowerB(c,x,y,r,b){for(let i=0;i<5;i++){const ang=i*Math.PI*2/5-Math.PI/2;c.beginPath();c.arc(x+Math.cos(ang)*r*0.55,y+Math.sin(ang)*r*0.55,r*0.45,0,Math.PI*2);c.fillStyle=ab('#FF6644',b);c.fill();}c.beginPath();c.arc(x,y,r*0.22,0,Math.PI*2);c.fillStyle=ab('#FFCC30',b);c.fill();}
-function drawLeaf(c,x,y,r,angle,b){c.save();c.translate(x,y);c.rotate(angle);c.beginPath();c.ellipse(0,0,r*0.4,r*1.2,0,0,Math.PI*2);c.fillStyle=ab('#3A8A3A',b);c.fill();c.beginPath();c.moveTo(0,-r*1.1);c.lineTo(0,r*1.1);c.strokeStyle=ab('#2A6A2A',b);c.lineWidth=0.6;c.stroke();c.restore();}
-function drawApple(c,x,y,r,b){c.beginPath();c.arc(x,y,r,0,Math.PI*2);const aG=c.createRadialGradient(x-r*0.25,y-r*0.3,r*0.1,x,y,r);aG.addColorStop(0,ab('#F03030',b));aG.addColorStop(0.5,ab('#D82020',b));aG.addColorStop(1,ab('#9A1515',b));c.fillStyle=aG;c.fill();c.strokeStyle=ab('#7A1010',b);c.lineWidth=1;c.stroke();c.beginPath();c.moveTo(x+r*0.05,y-r*0.95);c.quadraticCurveTo(x+r*0.15,y-r*1.2,x+r*0.1,y-r*1.35);c.strokeStyle=ab('#5A3A1A',b);c.lineWidth=2.5;c.stroke();c.save();c.translate(x+r*0.12,y-r*1.2);c.rotate(0.5);c.beginPath();c.ellipse(0,0,r*0.12,r*0.3,0,0,Math.PI*2);c.fillStyle=ab('#4A9A2A',b);c.fill();c.restore();c.beginPath();c.arc(x-r*0.25,y-r*0.3,r*0.22,0,Math.PI*2);c.fillStyle='rgba(255,255,255,'+(0.2*b)+')';c.fill();}
-function drawCup(c,x,y,w,h,b){c.beginPath();c.ellipse(x,y+h*0.45,w*1.3,h*0.12,0,0,Math.PI*2);c.fillStyle=ab('#E8E0D8',b);c.fill();c.strokeStyle=ab('#B0A898',b);c.lineWidth=1;c.stroke();c.beginPath();c.moveTo(x-w,y-h*0.3);c.quadraticCurveTo(x-w*0.95,y+h*0.35,x-w*0.7,y+h*0.4);c.lineTo(x+w*0.7,y+h*0.4);c.quadraticCurveTo(x+w*0.95,y+h*0.35,x+w,y-h*0.3);c.closePath();c.fillStyle=ab('#F0E8E0',b);c.fill();c.strokeStyle=ab('#B0A898',b);c.lineWidth=1.5;c.stroke();c.beginPath();c.ellipse(x,y-h*0.2,w*0.85,h*0.12,0,0,Math.PI*2);c.fillStyle=ab('#3A2010',b);c.fill();c.beginPath();c.ellipse(x,y-h*0.3,w,h*0.1,0,0,Math.PI*2);c.strokeStyle=ab('#C0B8A8',b);c.lineWidth=2;c.stroke();c.beginPath();c.moveTo(x+w,y-h*0.15);c.quadraticCurveTo(x+w*1.6,y,x+w*1.5,y+h*0.2);c.quadraticCurveTo(x+w*1.4,y+h*0.35,x+w*0.9,y+h*0.3);c.strokeStyle=ab('#B0A898',b);c.lineWidth=2;c.stroke();}
 
 sliderPupil.oninput=drawAll;
 window.addEventListener('resize',resize);
 resize();
 </script>
-</body>
-</html>
