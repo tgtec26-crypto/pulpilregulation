@@ -209,23 +209,7 @@ function drawEye(pupilSize,exposure){
         ctx.strokeStyle = '#332222'; ctx.lineWidth = 1; ctx.stroke();
     }
 
-    // 4. 단면도 화살표 피드백 표시
-    if(diff>=0.04){
-      const over=exposure>OPTIMAL;
-      const col=over?'#2266DD':'#DD3333';
-      const aX = irisX;
-      const sz2 = 6;
-      
-      const tPoint = irisCenterY - openHalf;
-      const tFrom = over ? tPoint - 15 : tPoint + 5;
-      const tTo = over ? tPoint - 2 : tPoint - 12;
-      drawSimpleArrow(ctx, aX, tFrom, aX, tTo, col, sz2);
 
-      const bPoint = irisCenterY + openHalf;
-      const bFrom = over ? bPoint + 15 : bPoint - 5;
-      const bTo = over ? bPoint + 2 : bPoint + 12;
-      drawSimpleArrow(ctx, aX, bFrom, aX, bTo, col, sz2);
-    }
   }
 }
 
